@@ -11,10 +11,10 @@ after that cd on folder's parent = on main /test_mini_stack/
 - docker compose build --no-cache
 - docker compose up -d
 
-Once the docker containers are up:
-docker exec -it laravel-app bash
-php artisan migrate:fresh
-php artisan db:seed
+Once the docker containers are up, type:
+- docker exec -it laravel-app bash
+- php artisan migrate
+- php artisan db:seed
 
 Core Features:
 
