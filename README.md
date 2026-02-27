@@ -5,6 +5,7 @@ It is necessary to navigate into the Laravel project directory and execute the f
 
 laravel's folder:  cd /test-mini-crm/laravel
 - npm install (node20)
+- composer install (php8.4) (it will fail but it needed to build the image after)
 
 after that cd on folder's parent = on main /test_mini_stack/
 - docker compose build --no-cache
