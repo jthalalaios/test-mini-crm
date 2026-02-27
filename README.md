@@ -13,7 +13,7 @@ after that cd on folder's parent = on main /test_mini_stack/
 
 Once the docker containers are up, type:
 - docker exec -it laravel-app bash
-- php artisan migrate
+- php artisan migrate:fresh
 - php artisan db:seed
 
 Core Features:
