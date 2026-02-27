@@ -1,0 +1,29 @@
+{
+  "$schema": "https://www.schemastore.org/package.json",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "tailwind:build": "npx tailwindcss -i ./resources/css/app.css -o ./public/build/app.css --minify",
+    "clean:vite": "rm -rf node_modules/.vite* node_modules/.vite-temp public/build"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "autoprefixer": "^10.4.27",
+    "axios": "^1.11.0",
+    "concurrently": "^9.0.1",
+    "laravel-vite-plugin": "^2.0.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.2.1",
+    "vite": "^7.0.7"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.2.0",
+    "@popperjs/core": "^2.11.8",
+    "admin-lte": "^4.0.0-rc6",
+    "bootstrap": "^5.3.2",
+    "datatables.net": "^2.3.7",
+    "datatables.net-bs4": "^2.3.7"
+  }
+}
