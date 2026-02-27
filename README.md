@@ -1,7 +1,7 @@
 This mini CRM contains:
 
 Docker setup to build whole project,
-It is necessary to navigate into the Laravel project directory and execute the following commands manually. 
+It is necessary to navigate into the Laravel project directory and execute the following command manually. 
 
 laravel's folder:  cd /test-mini-crm/laravel
 - npm install (node20)
