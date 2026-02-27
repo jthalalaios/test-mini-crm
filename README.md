@@ -16,6 +16,9 @@ Once the docker containers are up, type:
 - php artisan migrate:fresh
 - php artisan db:seed
 
+Access the application by navigating to:
+http://localhost:8080/
+
 Core Features:
 
 Manage companies and their employees (Mini-CRM functionality)
