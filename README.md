@@ -5,9 +5,7 @@ cd on folder's parent = on main /test_mini_stack/
 - docker compose build --no-cache
 - docker compose up -d
 
-Once the docker containers are up:
-
-Access the application by navigating to:
+Once the docker containers are up, wait 1 min and after access the application by navigating to:
 http://localhost:8080/
 
 Core Features:
