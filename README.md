@@ -1,20 +1,11 @@
 This mini CRM contains:
 
 Docker setup to build whole project,
-It is necessary to navigate into the Laravel project directory and execute the following command manually. 
-
-laravel's folder:  cd /test-mini-crm/laravel
-- npm install (node20)
-- composer install (php8.4) 
-
-after that cd on folder's parent = on main /test_mini_stack/
+cd on folder's parent = on main /test_mini_stack/
 - docker compose build --no-cache
 - docker compose up -d
 
-Once the docker containers are up, type:
-- docker exec -it laravel-app bash
-- php artisan migrate:fresh
-- php artisan db:seed
+Once the docker containers are up:
 
 Access the application by navigating to:
 http://localhost:8080/
