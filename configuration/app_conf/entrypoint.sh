@@ -27,7 +27,11 @@ if command -v npm >/dev/null 2>&1; then
   if [ ! -d "$APP_DIR/node_modules" ] || [ ! -d "$APP_DIR/public/build" ]; then
     echo "Installing npm dependencies and building assets..."
     cd $APP_DIR
-    npm ci --legacy-peer-deps
+    if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then
+      npm ci --legacy-peer-deps
+    else
+      npm install --legacy-peer-deps
+    fi
     npm run build
     chown -R www-data:www-data node_modules public/build
   fi
@@ -58,11 +62,20 @@ php artisan config:cache || true
 php artisan route:cache || true
 php artisan view:cache || true
 
-echo "Running migrations..."
-php artisan migrate --force || true
-
-echo "Running seeders..."
-php artisan db:seed --force || true
+# run migrations and seeders only if database hasn't yet been initialised
+# (persistent Postgres volume survives compose down/up)
+echo "Checking database initialization..."
+if ! php -r "require '$APP_DIR/vendor/autoload.php'; \
+    \$app=require '$APP_DIR/bootstrap/app.php'; \
+    \$kernel=\$app->make(Illuminate\\Contracts\\Console\\Kernel::class); \
+    \$kernel->bootstrap(); \
+    echo Illuminate\\Support\\Facades\\Schema::hasTable('migrations') ? '1' : '0';" | grep -q 1; then
+  echo "Database empty, running initial migrations and seeders..."
+  php artisan migrate --force || true
+  php artisan db:seed --force || true
+else
+  echo "Database already initialized; skipping migrate/seed."
+fi
 
 echo "Ensuring storage symlink..."
 php artisan storage:link || true
