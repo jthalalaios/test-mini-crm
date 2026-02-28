@@ -3,28 +3,56 @@ set -e
 
 APP_DIR="/var/www/html"
 
-chmod 1777 /tmp
+# attempt to make /tmp world-writable; only root can do this
+if [ "$(id -u)" -eq 0 ]; then
+  chmod 1777 /tmp
+fi
 
-chown -R www-data:www-data $APP_DIR/storage $APP_DIR/bootstrap/cache
-chmod -R 775 $APP_DIR/storage $APP_DIR/bootstrap/cache
-chmod -R 777 $APP_DIR/storage/framework/sessions
+# change ownership only if we are root (bind mounts may prevent it otherwise)
+if [ "$(id -u)" -eq 0 ]; then
+  chown -R www-data:www-data $APP_DIR/storage $APP_DIR/bootstrap/cache
+  chmod -R 775 $APP_DIR/storage $APP_DIR/bootstrap/cache
+  chmod -R 777 $APP_DIR/storage/framework/sessions
+fi
 
 mkdir -p $APP_DIR/storage/app/public
-chown -R www-data:www-data $APP_DIR/storage/app/public
-chmod -R 775 $APP_DIR/storage/app/public
+# ownership and permission tweaks only as root
+if [ "$(id -u)" -eq 0 ]; then
+  chown -R www-data:www-data $APP_DIR/storage/app/public
+  chmod -R 775 $APP_DIR/storage/app/public
+fi
+
+# Ensure frontend dependencies and build artifacts are present (bind-mounts can hide them)
+if command -v npm >/dev/null 2>&1; then
+  if [ ! -d "$APP_DIR/node_modules" ] || [ ! -d "$APP_DIR/public/build" ]; then
+    echo "Installing npm dependencies and building assets..."
+    cd $APP_DIR
+    npm ci --legacy-peer-deps
+    npm run build
+    chown -R www-data:www-data node_modules public/build
+  fi
+else
+  echo "npm not available in container; skipping frontend build-check in entrypoint"
+fi
 
 # Wait until Composer vendor folder is ready
 until php -r "require '$APP_DIR/vendor/autoload.php'; exit(0);" > /dev/null 2>&1; do
   echo "Vendor folder missing or database not ready..."
   if [ ! -f "$APP_DIR/vendor/autoload.php" ]; then
     echo "Installing composer dependencies..."
-    composer install --no-dev --prefer-dist --optimize-autoloader
+    if [ "${APP_ENV:-production}" != "production" ]; then
+      # non-production environments need dev packages such as pail
+      composer install --prefer-dist --optimize-autoloader
+    else
+      composer install --no-dev --prefer-dist --optimize-autoloader
+    fi
   fi
   sleep 3
 done
 
 cd $APP_DIR
 
+# now regenerate the caches we actually want for production
 echo "Caching config and routes..."
 php artisan config:cache || true
 php artisan route:cache || true
@@ -33,9 +61,11 @@ php artisan view:cache || true
 echo "Running migrations..."
 php artisan migrate --force || true
 
+echo "Running seeders..."
+php artisan db:seed --force || true
+
 echo "Ensuring storage symlink..."
 php artisan storage:link || true
-
 
 echo "Starting Laravel queue worker..."
 php artisan queue:work --sleep=3 --tries=3 &

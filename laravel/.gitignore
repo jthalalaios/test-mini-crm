@@ -19,6 +19,9 @@
 /storage/*.key
 /storage/pail
 /vendor
+
+# Laravel cache artefacts - generated at runtime
+/bootstrap/cache
 Homestead.json
 Homestead.yaml
 Thumbs.db

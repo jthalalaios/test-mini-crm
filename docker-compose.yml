@@ -17,9 +17,7 @@ services:
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
     volumes:
-      -  type: bind
-         source: ./laravel
-         target: /var/www/html
+      - ./laravel/storage:/var/www/html/storage
     networks:
       - test-mini-network
     depends_on:

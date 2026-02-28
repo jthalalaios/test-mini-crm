@@ -5,21 +5,19 @@ FROM node:20 AS node_builder
 
 WORKDIR /app
 
-# Copy package files first to leverage caching
 COPY laravel/package*.json ./
-RUN npm ci --legacy-peer-deps
 
-# Copy frontend source and config files
+RUN if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then \
+      npm ci --legacy-peer-deps; \
+    else \
+      npm install --legacy-peer-deps; \
+    fi
+
 COPY laravel/resources ./resources
 COPY laravel/vite.config.js ./
 COPY laravel/tailwind.config.js ./
-
-# Build Vite assets
 RUN npm run build
 
-# =========================
-# Stage 2: Composer dependencies
-# =========================
 FROM php:8.4-fpm AS composer_builder
 
 WORKDIR /app
@@ -53,6 +51,7 @@ RUN apt-get update && apt-get install -y \
     libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
     libonig-dev libxml2-dev libzip-dev \
     libpq-dev \
+    nodejs npm \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
         pdo pdo_pgsql pgsql mbstring bcmath exif pcntl gd zip \
@@ -63,6 +62,11 @@ RUN apt-get update && apt-get install -y \
 
 # Copy application code
 COPY laravel/ /var/www/html
+
+# delete any pre-generated config/packages caches that might have been
+# committed to the repo; we always rebuild them at runtime so the
+# container should start with a clean slate.
+RUN rm -rf /var/www/html/bootstrap/cache/* || true
 
 # Copy vendor from Composer stage
 COPY --from=composer_builder /app/vendor ./vendor
@@ -80,7 +84,6 @@ RUN mkdir -p storage/framework/{views,cache,sessions} bootstrap/cache \
 # Optional: set PHP system temp dir explicitly
 RUN echo "sys_temp_dir=/tmp" >> /usr/local/etc/php/conf.d/temp.ini
 
-# Entrypoint
 COPY configuration/app_conf/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
