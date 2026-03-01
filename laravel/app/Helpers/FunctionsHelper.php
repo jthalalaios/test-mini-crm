@@ -67,16 +67,20 @@ class FunctionsHelper
             $searchable_fields = (new $model())->searchable_fields();
             $allowed_filters = [];
 
-            foreach ($searchable_fields as $field) {
+            // Only use company_name for Employee model
+            $is_employee = is_a($model, \App\Models\Employee::class, true);
+            $fields_for_search = $is_employee ? $searchable_fields : array_filter($searchable_fields, fn($f) => $f !== 'company_name');
+
+            foreach ($fields_for_search as $field) {
                 $allowed_filters[] = AllowedFilter::custom($field, new $filter_class);
             }
 
             // If global search is present, ignore all per-column filters for searchable fields
             if (isset($filters['search']) && $filters['search']) {
                 $filters = ['search' => $filters['search']];
-                $query->where(function($q) use ($searchable_fields, $filters) {
-                    foreach ($searchable_fields as $field) {
-                        if ($field === 'company_name') {
+                $query->where(function($q) use ($fields_for_search, $filters, $is_employee) {
+                    foreach ($fields_for_search as $field) {
+                        if ($is_employee && $field === 'company_name') {
                             $q->orWhereHas('company', function ($subQ) use ($filters) {
                                 $subQ->where('companies.name', 'ILIKE', '%' . $filters['search'] . '%');
                             });
@@ -88,10 +92,10 @@ class FunctionsHelper
                 // Do NOT call allowedFilters when using OR logic
             } elseif ($filters) {
                 // Per-column search: use OR logic for all non-empty searchable fields
-                $query->where(function($q) use ($filters, $searchable_fields) {
+                $query->where(function($q) use ($filters, $fields_for_search, $is_employee) {
                     foreach ($filters as $field => $value) {
-                        if (in_array($field, $searchable_fields) && $value !== null && $value !== '') {
-                            if ($field === 'company_name') {
+                        if (in_array($field, $fields_for_search) && $value !== null && $value !== '') {
+                            if ($is_employee && $field === 'company_name') {
                                 $q->orWhereHas('company', function ($subQ) use ($value) {
                                     $subQ->where('companies.name', 'ILIKE', '%' . $value . '%');
                                 });

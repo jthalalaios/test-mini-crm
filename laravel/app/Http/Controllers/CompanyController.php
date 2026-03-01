@@ -10,7 +10,6 @@ use App\Http\Requests\Company\EditRequest;
 use App\Http\Requests\GeneralRequest;
 use App\Models\Company;
 use App\Models\File;
-use Illuminate\Support\Facades\Log;
 
 class CompanyController extends Controller
 {
@@ -19,8 +18,8 @@ class CompanyController extends Controller
         $validated_data = $request->validated();
         [$company_query, $items] = FunctionsHelper::filters_with_sorting($validated_data, Company::class, FilterCompany::class);
 
-        // if DataTables requests JSON, return server-side dataset
-        if ($request->ajax()) {
+        //for datatable ajax request
+        if ($request->ajax() || $request->wantsJson()) {
             $paginated = $company_query->paginate($request->input('items', 10));
             $paginated->getCollection()->transform(function ($company) {
                 $company_image = File::where('foreign_id', $company->id)
@@ -96,11 +95,8 @@ class CompanyController extends Controller
                 'path'       => $upload_path,
                 'foreign_id' => $company->id,
             ]);
-
-            // Store new image
             $new_file = $file_controller->store_image($request);
-
-            // Delete old image from DB and storage
+            
             if ($company->logo) {
                 $old_file = \App\Models\File::where('file_path', $company->logo)->where('foreign_id', $company->id)->first();
                 if ($old_file) {
@@ -128,11 +124,18 @@ class CompanyController extends Controller
             $logoFile = \App\Models\File::where('file_path', $company->logo)->where('foreign_id', $company->id)->first();
             if ($logoFile) {
                 $logoFile->forceDelete();
-                if (\Illuminate\Support\Facades\Storage::disk('custom')->exists($logoFile->file_path)) \Illuminate\Support\Facades\Storage::disk('custom')->delete($logoFile->file_path);
+                if (\Illuminate\Support\Facades\Storage::disk('custom')->exists($logoFile->file_path)) {
+                    \Illuminate\Support\Facades\Storage::disk('custom')->delete($logoFile->file_path);
+                }
             }
         }
 
         $company->forceDelete();
         return redirect()->route('companies.index')->with('success', __('messages.company_deleted_successfully'));
+    }
+
+    public function show($id)
+    {
+        abort(404);
     }
 }

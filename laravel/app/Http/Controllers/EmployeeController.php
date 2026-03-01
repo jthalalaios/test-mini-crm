@@ -48,18 +48,14 @@ class EmployeeController extends Controller
         return view('employees.index', compact('employees'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+
     public function create()
     {
         $companies = Company::all();
         return view('employees.create', compact('companies'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+
     public function store(CreateRequest $request)
     {
         $validated_data = $request->validated();
@@ -69,18 +65,12 @@ class EmployeeController extends Controller
             ->with('success', __('messages.employee_created_successfully'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Employee $employee)
     {
         $companies = Company::all();
         return view('employees.edit', compact('employee', 'companies'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(EditRequest $request, Employee $employee)
     {
         $validated_data = $request->validated();
@@ -90,14 +80,16 @@ class EmployeeController extends Controller
             ->with('success', __('messages.employee_updated_successfully'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Employee $employee)
     {
         $employee->forceDelete();
 
         return redirect()->route('employees.index')
             ->with('success', __('messages.employee_deleted_successfully'));
+    }
+
+    public function show($id)
+    {
+        abort(404);
     }
 }

@@ -14,10 +14,11 @@ Route::middleware(['setLocale'])->group(function () {
     Route::post('/set-locale', [LanguageController::class, 'setLocale'])->name('set.locale');
 
     Route::middleware(['auth', 'isAdmin'])->group(function () {
+        Route::get('/companies/datatable', [CompanyController::class, 'index'])->name('companies.datatable');
+        Route::get('/employees/datatable', [EmployeeController::class, 'index'])->name('employees.datatable');
         Route::resource('companies', CompanyController::class);
         Route::resource('employees', EmployeeController::class);
         Route::post('/files', [FileController::class, 'store_image']);
-        Route::get('/companies/datatable', [\App\Http\Controllers\CompanyDatatableController::class, 'index'])->name('companies.datatable');
     });
 
 });

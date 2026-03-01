@@ -13,15 +13,20 @@ class EmployeeSeeder extends Seeder
      */
     public function run(): void
     {
-        // ensure some companies exist
-        $companies = Company::all();
-        if ($companies->isEmpty()) {
-            $companies = Company::factory(100)->create();
-        }
+        // ensure some companies exist, without firing events
+        $companies = \DB::transaction(function () {
+            return Company::withoutEvents(function () {
+                $existing = Company::all();
+                if ($existing->isEmpty()) {
+                    return Company::factory(100)->create();
+                }
+                return $existing;
+            });
+        });
 
         // create 1000 employees distributed across existing companies
-        Employee::factory(1000)->make()->each(fn($employee) =>
-            $employee->company_id = $companies->random()->id
-        )->each->save();
+        Employee::factory(1000)->make()->each(function ($employee) use ($companies) {
+            $employee->company_id = $companies->random()->id;
+        })->each->save();
     }
 }
