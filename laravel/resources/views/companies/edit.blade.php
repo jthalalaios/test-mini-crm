@@ -22,7 +22,7 @@
             ['name' => 'name', 'type' => 'text', 'required' => true, 'label' => 'name'],
             ['name' => 'email', 'type' => 'email', 'required' => false, 'label' => 'email'],
             ['name' => 'website', 'type' => 'text', 'required' => false, 'label' => 'website'],
-            ['name' => 'logo', 'type' => 'file', 'required' => false, 'label' => 'logo'],
+            ['name' => 'file', 'type' => 'file', 'required' => false, 'label' => 'logo'],
         ];
     @endphp
 
@@ -42,9 +42,12 @@
                         <span class="invalid-feedback">{{ $message }}</span>
                     @enderror
 
-                    @if($company->logo && $field['name'] === 'logo')
-                        <img src="{{ asset('storage/' . $company->logo) }}" 
-                             alt="{{ __('messages.logo') }}" 
+                    @php
+                        $logoPath = $company->logo ?? $company->file ?? null;
+                    @endphp
+                    @if($logoPath && $field['name'] === 'file')
+                        <img src="{{ (str_starts_with($logoPath, 'http') ? $logoPath : (config('app.storage_url') ? rtrim(config('app.storage_url'),'/') . '/' . ltrim($logoPath,'/') : asset('storage/' . $logoPath))) }}"
+                             alt="{{ __('messages.logo') }}"
                              style="max-width:100px; margin-top:10px;">
                     @endif
 

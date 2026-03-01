@@ -17,7 +17,7 @@ class CreateRequest extends FormRequest
             'name' => 'required|string|max:255|unique:companies,name',
             'email' => 'sometimes|email|unique:companies,email',
             'website' => 'sometimes|url|unique:companies,website',
-            'logo' => 'sometimes|image|mimes:jpeg,png,jpg,gif|dimensions:min_width=100,min_height=100|max:2048',
+            'file' => 'sometimes|image|mimes:jpeg,png,jpg,gif|dimensions:min_width=100,min_height=100|max:2048',
         ]; 
     }
 
@@ -30,10 +30,10 @@ class CreateRequest extends FormRequest
             'email.unique' => __('messages.email') . ' ' . __('messages.unique'),
             'website.url' => __('messages.website') . ' ' . __('messages.invalid'),
             'website.unique' => __('messages.website') . ' ' . __('messages.unique'),
-            'logo.image' => __('messages.logo') . ' ' . __('messages.invalid_image'),
-            'logo.mimes' => __('messages.logo') . ' ' . __('messages.invalid_image_format'),
-            'logo.dimensions' => __('messages.logo') . ' ' . __('messages.invalid_image_dimensions'),
-            'logo.max' => __('messages.logo') . ' ' . __('messages.image_too_large'),
+            'file.image' => __('messages.logo') . ' ' . __('messages.invalid_image'),
+            'file.mimes' => __('messages.logo') . ' ' . __('messages.invalid_image_format'),
+            'file.dimensions' => __('messages.logo') . ' ' . __('messages.invalid_image_dimensions'),
+            'file.max' => __('messages.logo') . ' ' . __('messages.image_too_large'),
         ];
     }
 }

@@ -69,7 +69,11 @@ class CompanyController extends Controller
                 'foreign_id' => $company->id,
             ]);
             $file_controller = new FileController();
-            $file_controller->store_image($request);
+            $new_file = $file_controller->store_image($request);
+            if ($new_file) {
+                $company->logo = $new_file->file_path;
+                $company->save();
+            }
         }
 
         return redirect()->route('companies.index')->with('success', __('messages.company_created_successfully'));
@@ -78,7 +82,6 @@ class CompanyController extends Controller
     public function edit(Company $company)
     {
         $company_image = File::where('foreign_id', $company->id)->first();
-        Log::info("company_image edwww-->" .json_encode($company_image));
         if($company_image) $company->display_logo = $company_image?->file_path ?? null;
         return view('companies.edit', compact('company'));
     }
@@ -86,15 +89,18 @@ class CompanyController extends Controller
    public function update(EditRequest $request, Company $company)
     {
         $validated_data = $request->validated();
-        if ($request->hasFile('logo')) {
-            $fileController = new FileController();
+        if ($request->hasFile('file')) {
+            $file_controller = new FileController();
             $upload_path = Constants::FILE_PATHS['base_image_path'] . '/company/' . $company->id;
             $request->merge([
                 'path'       => $upload_path,
                 'foreign_id' => $company->id,
             ]);
 
-            $new_file = $fileController->store_image($request); 
+            // Store new image
+            $new_file = $file_controller->store_image($request);
+
+            // Delete old image from DB and storage
             if ($company->logo) {
                 $old_file = \App\Models\File::where('file_path', $company->logo)->where('foreign_id', $company->id)->first();
                 if ($old_file) {
@@ -104,6 +110,7 @@ class CompanyController extends Controller
                     $old_file->forceDelete();
                 }
             }
+
             $validated_data['logo'] = $new_file ? $new_file?->file_path : null;
         }
 
@@ -116,6 +123,14 @@ class CompanyController extends Controller
         $company->employees()->each(function ($employee) {
             $employee->delete();
         });
+
+        if ($company->logo) {
+            $logoFile = \App\Models\File::where('file_path', $company->logo)->where('foreign_id', $company->id)->first();
+            if ($logoFile) {
+                $logoFile->forceDelete();
+                if (\Illuminate\Support\Facades\Storage::disk('custom')->exists($logoFile->file_path)) \Illuminate\Support\Facades\Storage::disk('custom')->delete($logoFile->file_path);
+            }
+        }
 
         $company->forceDelete();
         return redirect()->route('companies.index')->with('success', __('messages.company_deleted_successfully'));

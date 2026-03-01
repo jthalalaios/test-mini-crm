@@ -20,14 +20,14 @@ class BaseController extends Controller
 
         // If a file already exists for this foreign_id + path, delete it
         if (isset($validated_data['foreign_id'])) {
-            $existingFile = File::where('foreign_id', $validated_data['foreign_id'])
+            $existing_file = File::where('foreign_id', $validated_data['foreign_id'])
                                 ->where('path', $path)
                                 ->latest('id')
                                 ->first();
 
-            if ($existingFile && !$existingFile->default) {
-                if (Storage::disk('custom')->exists($existingFile->file_path)) Storage::disk('custom')->delete($existingFile->file_path);
-                $existingFile->forceDelete();
+            if ($existing_file && !$existing_file->default) {
+                if (Storage::disk('custom')->exists($existing_file->file_path)) Storage::disk('custom')->delete($existing_file->file_path);
+                $existing_file->forceDelete();
             }
         }
 

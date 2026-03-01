@@ -22,9 +22,6 @@ class FilterCompany extends FlexibleFilter
             $this->applyStringFilter($query, "$table.$property", $search_value, $mode);
         }
 
-        // Log the SQL for debugging
-        \Log::info('Company filter SQL: ' . $query->toSql(), $query->getBindings());
-
         return true;
     }
 }
