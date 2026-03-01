@@ -40,15 +40,15 @@ Form validation implemented using Laravel Request classes
 
 Pagination for listing Companies and Employees (10 entries per page)
 
-Datatables.net integration for displaying tables (with optional server-side rendering)
+Datatables.net integration for displaying tables with server side (used spattie)
 
 Front-end utilizes a more advanced theme, such as AdminLTE
 
-Email notifications sent via Gmail SMTP when a new company is added
+Email notifications sent via Gmail SMTP when a new company is added (Check logs because sometimes it fails for spamming by Google, it has limit) 
 
 Multi-language support using the lang folder
 
-Its not having testing methods....
+Its having some test methods.
 
 
 
