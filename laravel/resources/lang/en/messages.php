@@ -58,5 +58,6 @@ return [
     'company_name' => 'Company Name',
     'company_id' => 'Company ID',
     'company_email' => 'Company Email',
-    'greeting' => 'Thank you for using our platform.',     
+    'greeting' => 'Thank you for using our platform.',
+    'user_has_no_access' => "User has no access.",     
 ];
