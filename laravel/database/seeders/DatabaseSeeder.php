@@ -10,8 +10,10 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             LanguageSeeder::class,
-            RoleSeeder::class, 
-            UserSeeder::class, //creating the admin 
+            RoleSeeder::class,
+            UserSeeder::class, // creating the admin
+            CompanySeeder::class, //dummy data
+            EmployeeSeeder::class, //dummy data
         ]);
     }
 }

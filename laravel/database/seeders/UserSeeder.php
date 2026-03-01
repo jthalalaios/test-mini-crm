@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Helpers\RolesHelper;
 use App\Models\Language;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserSetting;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
@@ -25,11 +25,7 @@ class UserSeeder extends Seeder
         );
 
         $admin_role = Role::where('slug', 'admin')->first();
-        
-        $user->roles()->attach($admin_role?->id, [
-			'created_at' => Carbon::now()->setTimezone('UTC'),
-			'updated_at' => Carbon::now()->setTimezone('UTC'),
-		]);
+        RolesHelper::insert_user_role_by_id($user->id, $admin_role?->id);
 
         $default_language = Language::where('enabled', true)->where('default', true)->first();
         UserSetting::firstOrCreate([
