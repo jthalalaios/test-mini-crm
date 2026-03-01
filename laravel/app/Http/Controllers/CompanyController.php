@@ -11,7 +11,6 @@ use App\Http\Requests\GeneralRequest;
 use App\Models\Company;
 use App\Models\File;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 class CompanyController extends Controller
 {
@@ -19,8 +18,31 @@ class CompanyController extends Controller
     {
         $validated_data = $request->validated();
         [$company_query, $items] = FunctionsHelper::filters_with_sorting($validated_data, Company::class, FilterCompany::class);
-        $companies = $company_query->paginate($items);
 
+        // if DataTables requests JSON, return server-side dataset
+        if ($request->ajax()) {
+            $paginated = $company_query->paginate($request->input('items', 10));
+            $paginated->getCollection()->transform(function ($company) {
+                $company_image = File::where('foreign_id', $company->id)
+                    ->where('path', '/uploads/images/company/' .$company->id)
+                    ->first();
+                $company->display_logo = $company_image ? config('app.storage_url').'/'.$company_image->file_path : null;
+                $company->actions = view('companies.partials.actions', [
+                    'edit' => route('companies.edit', $company->id),
+                    'delete' => route('companies.destroy', $company->id),
+                    'company' => $company
+                ])->render();
+                return $company;
+            });
+            return response()->json([
+                'draw' => intval($request->input('draw')), // DataTables draw count
+                'recordsTotal' => $paginated->total(),
+                'recordsFiltered' => $paginated->total(),
+                'data' => $paginated->items(),
+            ]);
+        }
+
+        $companies = $company_query->paginate($items);
         $companies->getCollection()->transform(function ($company) {
             $company_image = File::where('foreign_id', $company->id)->where('path', '/uploads/images/company/' .$company->id)->first();
             if($company_image) $company->display_logo = $company_image?->file_path ??  null;

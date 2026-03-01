@@ -71,19 +71,65 @@ class FunctionsHelper
                 $allowed_filters[] = AllowedFilter::custom($field, new $filter_class);
             }
 
-            $query->allowedFilters($allowed_filters);
+            // If global search is present, ignore all per-column filters for searchable fields
+            if (isset($filters['search']) && $filters['search']) {
+                $filters = ['search' => $filters['search']];
+                $query->where(function($q) use ($searchable_fields, $filters) {
+                    foreach ($searchable_fields as $field) {
+                        if ($field === 'company_name') {
+                            $q->orWhereHas('company', function ($subQ) use ($filters) {
+                                $subQ->where('companies.name', 'ILIKE', '%' . $filters['search'] . '%');
+                            });
+                        } else {
+                            $q->orWhere($field, 'ILIKE', '%' . $filters['search'] . '%');
+                        }
+                    }
+                });
+                // Do NOT call allowedFilters when using OR logic
+            } elseif ($filters) {
+                // Per-column search: use OR logic for all non-empty searchable fields
+                $query->where(function($q) use ($filters, $searchable_fields) {
+                    foreach ($filters as $field => $value) {
+                        if (in_array($field, $searchable_fields) && $value !== null && $value !== '') {
+                            if ($field === 'company_name') {
+                                $q->orWhereHas('company', function ($subQ) use ($value) {
+                                    $subQ->where('companies.name', 'ILIKE', '%' . $value . '%');
+                                });
+                            } else {
+                                $q->orWhere($field, 'ILIKE', '%' . $value . '%');
+                            }
+                        }
+                    }
+                });
+                // Do NOT call allowedFilters when using OR logic
+            } else {
+                // No search: allow Spatie filters for other cases
+                $query->allowedFilters($allowed_filters);
+            }
         }
 
         if ($sorting) {
             if ($sort) {
-                foreach ($sort as $field => $direction) {
-                    $order = (strpos($field, '-') !== false) ? 'asc' : 'desc';
-                    $field_name = ltrim($field, '-');
-
-                    $query = (new $model())->sortable($field_name, $query, $order);
+                // Support both array of arrays (DataTables) and Spatie-style array of strings
+                if (is_array($sort) && isset($sort[0]['column'])) {
+                    foreach ($sort as $sortItem) {
+                        $field = $sortItem['column'];
+                        $direction = $sortItem['direction'] ?? $sortItem['dir'] ?? 'asc';
+                        $query = (new $model())->sortable($field, $query, $direction);
+                    }
+                } elseif (is_array($sort)) {
+                    foreach ($sort as $sortValue) {
+                        $direction = (strpos($sortValue, '-') === 0) ? 'desc' : 'asc';
+                        $field_name = ltrim($sortValue, '-');
+                        $query = (new $model())->sortable($field_name, $query, $direction);
+                    }
+                } else {
+                    // If sort is a string (single field)
+                        $direction = (strpos($sort, '-') === 0) ? 'desc' : 'asc';
+                        $field_name = ltrim($sort, '-');
+                        $query = (new $model())->sortable($field_name, $query, $direction);
                 }
             } else {
-                //$query->orderBy('id', 'desc');
                 $query->orderBy("{$query->getModel()->getTable()}.id", 'desc');
             }
         }

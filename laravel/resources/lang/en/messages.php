@@ -18,7 +18,7 @@ return [
     'actions' => 'Actions',
     'edit' => 'Edit',
     'delete' => 'Delete',
-    'add_new_company_btn' => 'Add New Company',
+    'add_new_company_btn' => 'New Company',
     'delete_confirm' => 'Are you sure?',
     'whoops' => 'Whoops!',
     'there_were_some_problems_with_your_input.' => 'There were some problems with your input.',
@@ -59,5 +59,7 @@ return [
     'company_id' => 'Company ID',
     'company_email' => 'Company Email',
     'greeting' => 'Thank you for using our platform.',
-    'user_has_no_access' => "User has no access.",     
+    'user_has_no_access' => "User has no access.",
+    'logo' => 'Logo',
+    'created_at' => 'Created At',     
 ];

@@ -12,12 +12,38 @@ use App\Models\Company;
 
 class EmployeeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(GeneralRequest $request)
-    {
-        [$employee_query, $items] = FunctionsHelper::filters_with_sorting($request->validated(), Employee::class, FilterEmploy::class);
+    {   
+        $validated_data = $request->validated();
+        [$employee_query, $items] = FunctionsHelper::filters_with_sorting($validated_data, Employee::class, FilterEmploy::class);
+
+        if ($request->ajax()) {
+            $data = $validated_data;
+            // Remove per-column filters for searchable fields if global search is present
+            if (isset($data['filter']['search']) && $data['filter']['search']) {
+                $searchable_fields = (new \App\Models\Employee())->searchable_fields();
+                foreach ($searchable_fields as $field) {
+                    unset($data['filter'][$field]);
+                }
+            }
+            $paginated = $employee_query->paginate($request->input('items', 10), ['*'], 'page', $request->input('page', 1));
+            $paginated->getCollection()->transform(function ($employee) {
+                $employee->company_name = optional($employee->company)->name;
+                $employee->actions = view('employees.partials.actions', [
+                    'edit' => route('employees.edit', $employee->id),
+                    'delete' => route('employees.destroy', $employee->id),
+                    'employee' => $employee
+                ])->render();
+                return $employee;
+            });
+            return response()->json([
+                'draw' => intval($request->input('draw')),
+                'recordsTotal' => $paginated->total(),
+                'recordsFiltered' => $paginated->total(),
+                'data' => $paginated->items(),
+            ]);
+        }
+
         $employees = $employee_query->paginate($items);
         return view('employees.index', compact('employees'));
     }
