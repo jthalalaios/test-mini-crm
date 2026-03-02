@@ -155,7 +155,8 @@ $(function() {
 
     function initDataTable() {
         var locale = getSelectedLocale();
-        $('#{{ $tableId ?? 'datatable-table' }}').DataTable({
+        var searchParam = new URLSearchParams(window.location.search).get('search');
+        var dt = $('#{{ $tableId ?? 'datatable-table' }}').DataTable({
             processing: true,
             serverSide: true,
             columns: columns, // Ensure columns array is passed
@@ -203,7 +204,14 @@ $(function() {
                 url: getDatatablesLangUrl(locale)
             },
             lengthMenu: [5, 10, 25, 50, 100],
-            pageLength: 10
+            pageLength: 10,
+            initComplete: function() {
+                if (searchParam) {
+                    // Autofill global search box and trigger search
+                    var input = $(this.api().table().container()).find('input[type="search"]');
+                    input.val(searchParam).trigger('input');
+                }
+            }
         });
     }
 

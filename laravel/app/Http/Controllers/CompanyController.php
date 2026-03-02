@@ -134,8 +134,9 @@ class CompanyController extends Controller
         return redirect()->route('companies.index')->with('success', __('messages.company_deleted_successfully'));
     }
 
-    public function show($id)
+    public function show(GeneralRequest $request, $id)
     {
-        abort(404);
+        $company = Company::findOrFail($id);
+        return redirect()->route('companies.index', ['search' => $company->name]);
     }
 }

@@ -28,7 +28,12 @@ class EmployeeController extends Controller
             }
             $paginated = $employee_query->paginate($request->input('items', 10), ['*'], 'page', $request->input('page', 1));
             $paginated->getCollection()->transform(function ($employee) {
-                $employee->company_name = optional($employee->company)->name;
+                $company = optional($employee->company);
+                if ($company && $company->id) {
+                    $employee->company_name = '<a href="' . route('companies.show', $company->id) . '">' . e($company->name) . '</a>';
+                } else {
+                    $employee->company_name = '';
+                }
                 $employee->actions = view('employees.partials.actions', [
                     'edit' => route('employees.edit', $employee->id),
                     'delete' => route('employees.destroy', $employee->id),
@@ -90,6 +95,7 @@ class EmployeeController extends Controller
 
     public function show($id)
     {
-        abort(404);
+        $employee = Employee::findOrFail($id);
+        return redirect()->route('employees.index', ['search' => $employee->first_name . ' ' . $employee->last_name]);
     }
 }
