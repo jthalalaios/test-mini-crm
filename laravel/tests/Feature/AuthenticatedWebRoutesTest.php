@@ -61,7 +61,8 @@ class AuthenticatedWebRoutesTest extends TestCase
             ]
         );
         $response->assertStatus(200);
-        $response->assertJsonFragment(['company_name' => 'TestCompany']);
+        // The company_name is now an HTML link, so check for the company name in the response
+        $response->assertSee('TestCompany', false);
     }
 
     public function test_companies_datatable_ajax_with_data()
